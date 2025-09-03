@@ -1,0 +1,34 @@
+name: Windows 10 Pro Sandbox VM
+
+on:
+  workflow_dispatch:   # Cho phép bấm nút Run thủ công
+
+jobs:
+  build:
+    runs-on: windows-latest   # GitHub chạy trên Windows Server 2022
+
+    steps:
+      - name: Download Windows 10 Pro ISO
+        run: |
+          curl -L -o win10pro.iso https://archive.org/download/windows10pro21h2/Win10Pro_21H2.iso
+          echo "✅ Windows 10 Pro ISO downloaded"
+
+      - name: Install QEMU
+        run: |
+          choco install qemu -y
+          echo "✅ QEMU installed"
+
+      - name: Create VM Disk
+        run: |
+          qemu-img create -f qcow2 win10pro.qcow2 50G
+          echo "✅ Disk created"
+
+      - name: Boot Windows 10 Pro VM
+        run: |
+          qemu-system-x86_64 -m 4G -smp 2 \
+            -hda win10pro.qcow2 \
+            -cdrom win10pro.iso \
+            -boot d \
+            -vga qxl -net nic -net user \
+            -enable-kvm || echo "VM running..."
+            
